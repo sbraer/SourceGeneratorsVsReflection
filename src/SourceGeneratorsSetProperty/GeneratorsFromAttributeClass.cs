@@ -150,9 +150,8 @@ public sealed class GeneratorsFromAttributeClass : IIncrementalGenerator
     {
         tx.WriteLine("var columns = row.Split(',');");
 
-        for (var counter = 0; counter < subType.Properties.Count; counter++)
+        foreach (var property in subType.Properties)
         {
-            var property = subType.Properties[counter];
             var members = property.Type.GetMembers();
 
             var hasParseMethod = members.Any(m =>
@@ -162,9 +161,7 @@ public sealed class GeneratorsFromAttributeClass : IIncrementalGenerator
                 method.Parameters.Length >= 1 &&
                 method.Parameters[0].Type.SpecialType == SpecialType.System_String);
 
-            var isLastProperty = counter == subType.Properties.Count - 1;
             tx.WriteLine("columns.MoveNext();");
-
             tx.WriteLine(hasParseMethod
                 ? $"obj.{property.Name} = {property.Type.ToDisplayString()}.Parse(row[columns.Current]);"
                 : $"obj.{property.Name} = row[columns.Current].ToString();"
