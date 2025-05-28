@@ -148,7 +148,7 @@ public sealed class GeneratorsFromAttributeClass : IIncrementalGenerator
 
     private static void InsertPropertiesInSwitch(SourceProductionContext context, IndentedTextWriter tx, SubTypeClass subType)
     {
-        tx.WriteLine("var index = row.IndexOf(',');");
+        tx.WriteLine("var columns = row.Split(',');");
 
         for (var counter = 0; counter < subType.Properties.Count; counter++)
         {
@@ -163,18 +163,12 @@ public sealed class GeneratorsFromAttributeClass : IIncrementalGenerator
                 method.Parameters[0].Type.SpecialType == SpecialType.System_String);
 
             var isLastProperty = counter == subType.Properties.Count - 1;
-            var sliceString = isLastProperty ? "row" : "row.Slice(0, index)";
+            tx.WriteLine("columns.MoveNext();");
 
             tx.WriteLine(hasParseMethod
-                ? $"obj.{property.Name} = {property.Type.ToDisplayString()}.Parse({sliceString});"
-                : $"obj.{property.Name} = {sliceString}.ToString();"
+                ? $"obj.{property.Name} = {property.Type.ToDisplayString()}.Parse(row[columns.Current]);"
+                : $"obj.{property.Name} = row[columns.Current].ToString();"
             );
-
-            if (!isLastProperty)
-            {
-                tx.WriteLine("row = row.Slice(index + 1);");
-                tx.WriteLine("index = row.IndexOf(',');");
-            }
         }
     }
 }
